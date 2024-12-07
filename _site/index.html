@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Recipe Classifier | Recipe-Classifier</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Recipe Classifier" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This is a Recipe Classifer, it can predict what type of recipe base on its nutrition composition" />
+<meta property="og:description" content="This is a Recipe Classifer, it can predict what type of recipe base on its nutrition composition" />
+<link rel="canonical" href="http://localhost:4000/" />
+<meta property="og:url" content="http://localhost:4000/" />
+<meta property="og:site_name" content="Recipe-Classifier" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Recipe Classifier" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","description":"This is a Recipe Classifer, it can predict what type of recipe base on its nutrition composition","headline":"Recipe Classifier","name":"Recipe-Classifier","url":"http://localhost:4000/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=aeea90e6dfc69c191bcb87b62134dd305f946eb1">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Recipe Classifier</h1>
+      <h2 class="project-tagline">This is a Recipe Classifer, it can predict what type of recipe base on its nutrition composition</h2>
+      
+        <a href="https://github.com/BirdyBai/Recipe-Classifier" class="btn">View on GitHub</a>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="recipe-classifier">Recipe Classifier</h1>
+<p>Project for EECS398 (Practical Data Science) at University of Michigan</p>
+
+<p>By Zifei Bai</p>
+
+<h1 id="introduction">Introduction</h1>
+
+<h2 id="general-introduction">General Introduction</h2>
+
+<p>Every country has tasty recipes. Users share their homemade recipes on Food.com to help others. But sometimes, the recipe has its unique name or directly translated pronunciation from other languages—for instance, kalbi (Korean beef rib). In this project, the primary goal is to build a recipe classifier that can predict the type of recipe based on its nutrition composition, which can help users from all over the world quickly identify the type of recipe they are not familiar with. This recipe classifier can classify recipes into three different categories—Starters, Main Courses and Desserts.</p>
+
+<p>First, I will clean the dataset, and do some exploratory data analysis to gain a basic understanding of this dataset, including data distribution and the nutrition composition of each type of recipe.</p>
+
+<p>Based on the understanding of exploratory data analysis, I will pick and design a baseline classification model and evaluate the performance of this model. After the baseline model, I will improve the model and measure the performance and improvement compared to the baseline model.</p>
+
+<h2 id="introduction-of-dataset">Introduction of Dataset</h2>
+
+<p>This dataset contains recipes and ratings from food.com. It was originally scraped and used by the authors of Generating Personalized Recipes from Historical User Preferences (UCSD).</p>
+
+<p>Since the original data is quite large, I will use the subset of the raw data used in the original report, containing only the recipes and reviews posted since 2008.</p>
+
+<p>The original raw dataset has two DataFrames, <code class="language-plaintext highlighter-rouge">RECIPES</code> and <code class="language-plaintext highlighter-rouge">RATINGS</code>. <code class="language-plaintext highlighter-rouge">RECIPES</code> contains 83782 rows, corresponding to 83782 recipes, and 12 columns. <code class="language-plaintext highlighter-rouge">RATINGS</code> contains 731927  rows, as each recipe could have more than one review. However, I will only focus on a few of these columns for the sake of my analysis.</p>
+
+<p><code class="language-plaintext highlighter-rouge">RECIPES</code></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Column</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'name'</code></td>
+      <td>Name of this recipe</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'id'</code></td>
+      <td>Recipe ID</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'nutrition'</code></td>
+      <td>Nutrition information in the form [calories (#), total fat (PDV), sugar (PDV), sodium (PDV), protein (PDV), saturated fat (PDV), carbohydrates (PDV)]; PDV stands for “percentage of daily value”</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'minutes'</code></td>
+      <td>Minutes to prepare recipe</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'contributor_id'</code></td>
+      <td>User ID who submitted this recipe</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'submitted'</code></td>
+      <td>Date recipe was submitted</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'tags'</code></td>
+      <td>Food.com tags for recipe</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'n_steps'</code></td>
+      <td>Number of steps in recipe</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'steps'</code></td>
+      <td>Text for recipe steps, in order</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'description'</code></td>
+      <td>User-provided description</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">RATING</code></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Column</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'recipe_id'</code></td>
+      <td>Recipe ID</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'rating'</code></td>
+      <td>Rating given</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'date'</code></td>
+      <td>Date of interaction</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'rating'</code></td>
+      <td>Rating given</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'review'</code></td>
+      <td>Review text</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="data-cleaning-and-exploratory-data-analysis">Data Cleaning and Exploratory Data Analysis</h1>
+
+<h2 id="cleaning">Cleaning</h2>
+
+<ol>
+  <li>
+    <p>I left merge <code class="language-plaintext highlighter-rouge">RECIPES</code> on <code class="language-plaintext highlighter-rouge">'id'</code> with <code class="language-plaintext highlighter-rouge">RATINGS</code> on <code class="language-plaintext highlighter-rouge">'recipe_id'</code>. Then, I dropped the <code class="language-plaintext highlighter-rouge">'recipe_id'</code> column, and grouped the columns with <code class="language-plaintext highlighter-rouge">'id'</code>.</p>
+  </li>
+  <li>
+    <p>I found that there are several rows of <code class="language-plaintext highlighter-rouge">'rating'</code> that are 0, but when the user rates the recipe, the range is 1-5, so the data might be missed, or the rating part is optional, so the user didn’t give a rating for this review. I replaced all the 0s with np.nan because when computing the average rating of each recipe, np.nan doesn’t affect the average but 0s will lower the average. After filled the missing value, I computed the average rating of each recipe and then merged this series with the DataFrame.</p>
+  </li>
+  <li>
+    <p>For now, I got the average rating for each recipe, so I dropped the duplicate rows base on <code class="language-plaintext highlighter-rouge">id</code>. The result DataFrame contains 83782 rows, which is same as the original <code class="language-plaintext highlighter-rouge">RECIPES</code>.</p>
+  </li>
+  <li>
+    <p>The column <code class="language-plaintext highlighter-rouge">nutrition</code> contains a lot of information, I extract <code class="language-plaintext highlighter-rouge">calories</code> (#), <code class="language-plaintext highlighter-rouge">total fat</code> (PDV), <code class="language-plaintext highlighter-rouge">sugar</code> (PDV), <code class="language-plaintext highlighter-rouge">sodium</code> (PDV), <code class="language-plaintext highlighter-rouge">protein</code> (PDV), <code class="language-plaintext highlighter-rouge">saturated fat</code> (PDV), <code class="language-plaintext highlighter-rouge">carbohydrates</code> (PDV) and convert them into float and assign them to new columns.</p>
+  </li>
+  <li>
+    <p>I dropped all the irrelevant columns, and the resulting DataFrame now contains 9 columns <code class="language-plaintext highlighter-rouge">’name’</code>, <code class="language-plaintext highlighter-rouge">avg_rating</code>, <code class="language-plaintext highlighter-rouge">’calories’</code>, <code class="language-plaintext highlighter-rouge">’sugar’</code>, <code class="language-plaintext highlighter-rouge">’protein’</code>, <code class="language-plaintext highlighter-rouge">’sodium’</code>, <code class="language-plaintext highlighter-rouge">’total_fat’</code>, <code class="language-plaintext highlighter-rouge">’saturated_fat’</code>, and <code class="language-plaintext highlighter-rouge">’carbohydrates’</code>.</p>
+  </li>
+  <li>
+    <p>Because the original dataset doesn’t contain the type of each recipe, I need to manually select some classic recipes for <code class="language-plaintext highlighter-rouge">’main_courses’</code>, <code class="language-plaintext highlighter-rouge">’desserts’</code>, and <code class="language-plaintext highlighter-rouge">’starters’</code>. My approach is to use regular expressions to filter keywords on the <code class="language-plaintext highlighter-rouge">’name’</code> column. For example, <code class="language-plaintext highlighter-rouge">’name’</code> contains ‘burger’ is <code class="language-plaintext highlighter-rouge">’main_courses</code>, <code class="language-plaintext highlighter-rouge">’name’</code> contains <code class="language-plaintext highlighter-rouge">’brownie’</code> is <code class="language-plaintext highlighter-rouge">’desserts’</code>, <code class="language-plaintext highlighter-rouge">’name’</code> contains <code class="language-plaintext highlighter-rouge">’appetizer’</code> is <code class="language-plaintext highlighter-rouge">’starters’</code>. I used a lot of keywords and tried to cover all the main classic types of the recipe as comprehensively as possible. After this process, the result DataFrame contains 15106 rows with the <code class="language-plaintext highlighter-rouge">’label’</code> <code class="language-plaintext highlighter-rouge">’main_courses’</code>, 11473 rows with the <code class="language-plaintext highlighter-rouge">’label’</code> <code class="language-plaintext highlighter-rouge">’desserts’</code>, and only 266 rows with the <code class="language-plaintext highlighter-rouge">’label’</code> <code class="language-plaintext highlighter-rouge">’starters’</code>.</p>
+  </li>
+  <li>
+    <p>Because this dataset is unbalanced, I then duplicated the rows with the label <code class="language-plaintext highlighter-rouge">’starters’</code> 50 times, the result DataFrame now contains 13158 rows with <code class="language-plaintext highlighter-rouge">’label’</code> <code class="language-plaintext highlighter-rouge">’starters’</code>, 15106 rows with the <code class="language-plaintext highlighter-rouge">’label’</code> <code class="language-plaintext highlighter-rouge">’main_courses’</code>, 11473 rows with the <code class="language-plaintext highlighter-rouge">’label’</code> <code class="language-plaintext highlighter-rouge">’desserts’</code>, total 38913 rows and 10 columns, <code class="language-plaintext highlighter-rouge">’name’</code>, <code class="language-plaintext highlighter-rouge">avg_rating</code>, <code class="language-plaintext highlighter-rouge">’calories’</code>, <code class="language-plaintext highlighter-rouge">’sugar’</code>, <code class="language-plaintext highlighter-rouge">’protein’</code>, <code class="language-plaintext highlighter-rouge">’sodium’</code>, <code class="language-plaintext highlighter-rouge">’total_fat’</code>, <code class="language-plaintext highlighter-rouge">’saturated_fat’</code> <code class="language-plaintext highlighter-rouge">’carbohydrates’</code>, and <code class="language-plaintext highlighter-rouge">’label’</code>.</p>
+  </li>
+  <li>
+    <p>Finally, I randomly selected 10000 rows for each type of recipe and the resulting DataFrame now contains 30000 rows and 10 columns.</p>
+  </li>
+</ol>
+
+<h2 id="exploratory-data-analysis">Exploratory Data Analysis</h2>
+
+<h3 id="univariate-analysis">Univariate Analysis</h3>
+
+<p>In my exploratory data analysis, I first perform univariate analysis to examine the distribution of single variables.</p>
+
+<p>I plotted the histograms for different nutrition types to explore the distribution of each nutrition type in all three types of recipes.</p>
+
+<iframe src="assets/Protein-hist.html" width="800" height="450" frameborder="0"></iframe>
+
+<iframe src="assets/Sugar-hist.html" width="800" height="450" frameborder="0"></iframe>
+
+<iframe src="assets/Carbo-hist.html" width="800" height="450" frameborder="0"></iframe>
+
+<h3 id="bivariate-analysis">Bivariate Analysis</h3>
+
+<p>I would like to know the distribution of <code class="language-plaintext highlighter-rouge">’protein’</code>, <code class="language-plaintext highlighter-rouge">’sugar’</code>, and <code class="language-plaintext highlighter-rouge">’carbohydrate’</code> content for <code class="language-plaintext highlighter-rouge">’desserts’</code>, <code class="language-plaintext highlighter-rouge">’main_courses’</code> and <code class="language-plaintext highlighter-rouge">’starters’</code>. The graphs below show the amount of different nutrients in the three recipes.</p>
+
+<iframe src="assets/bivariate-protein.html" width="800" height="450" frameborder="0"></iframe>
+
+<iframe src="assets/bivariate-sugar.html" width="800" height="450" frameborder="0"></iframe>
+
+<iframe src="assets/bivariate-carbohydrates.html" width="800" height="450" frameborder="0"></iframe>
+
+<p>It shows that <code class="language-plaintext highlighter-rouge">’desserts’</code> tend to have more <code class="language-plaintext highlighter-rouge">’sugar’</code>, <code class="language-plaintext highlighter-rouge">’main_courses’</code> tend to have more <code class="language-plaintext highlighter-rouge">’protein’</code>, and <code class="language-plaintext highlighter-rouge">’starters’</code> contain less of these three nutrients.</p>
+
+<p>I found that the distribution of these three nutrients is well characterized and can be used in subsequent classification models. I then plotted the 3D scattered plot to show the distribution of these three recipe types, the x, y, and z axes are <code class="language-plaintext highlighter-rouge">’sugar’</code>, <code class="language-plaintext highlighter-rouge">’protein’</code>, and <code class="language-plaintext highlighter-rouge">’carbohydrates’</code>.</p>
+
+<iframe src="assets/bivariate-3d-scatter.html" width="1000" height="450" frameborder="0"></iframe>
+
+<h3 id="grouping-and-aggregates">Grouping and Aggregates</h3>
+
+<p>I generated a pivot table to see for each type of recipe, the average <code class="language-plaintext highlighter-rouge">avg_rating</code>, <code class="language-plaintext highlighter-rouge">calories</code>, <code class="language-plaintext highlighter-rouge">carbohydrates</code>, <code class="language-plaintext highlighter-rouge">protein</code>, <code class="language-plaintext highlighter-rouge">sodium</code>, and <code class="language-plaintext highlighter-rouge">sugar</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>label</th>
+      <th>avg_rating</th>
+      <th>calories</th>
+      <th>carbohydrates</th>
+      <th>protein</th>
+      <th>sodium</th>
+      <th>sugar</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'desserts'</code></td>
+      <td>4.16</td>
+      <td>357.63</td>
+      <td>14.30</td>
+      <td>12.97</td>
+      <td>12.49</td>
+      <td>98.06</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'mian_courses'</code></td>
+      <td>4.40</td>
+      <td>459.14</td>
+      <td>10.76</td>
+      <td>55.82</td>
+      <td>34.57</td>
+      <td>28.25</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">'starters'</code></td>
+      <td>4.51</td>
+      <td>279.51</td>
+      <td>6.71</td>
+      <td>20.53</td>
+      <td>21.63</td>
+      <td>22.68</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="baseline-model">Baseline Model</h1>
+
+<p>First, I chose  Multinomial Logistic regression model to do the classification. I trained this model using <code class="language-plaintext highlighter-rouge">’protein’</code>(quantitative), <code class="language-plaintext highlighter-rouge">’sugar’</code>(quantitative), and <code class="language-plaintext highlighter-rouge">’carbohydrates’</code>(quantitative).</p>
+
+<p>I split the dataset into the training set and test set, 80% of the data is in the training set and 20% of the data is in the test set.</p>
+
+<p>I made a pipeline, first normalized these three features, and then fit multinomial logistic regression model.</p>
+
+<p>The macro average of accuracy, precision, recall, and F1-score are:</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Accuracy</td>
+      <td>0.7373</td>
+    </tr>
+    <tr>
+      <td>Precision</td>
+      <td>0.75</td>
+    </tr>
+    <tr>
+      <td>Recall</td>
+      <td>0.74</td>
+    </tr>
+    <tr>
+      <td>F1-score</td>
+      <td>0.74</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><br /></p>
+
+<p>The resulting confusion matrix for the multinomial logistic regression model is shown below.</p>
+
+<iframe src="assets/base-cm.html" width="850" height="450" frameborder="0"></iframe>
+
+<h1 id="final-model">Final Model</h1>
+
+<p>I found that the performance of the Multinomial Logistic Regression Model in this dataset is not very well. I hypothesized that the reason the logistic regression model did not perform well on this dataset is that the decision boundary for the logistic regression model must be linear, but this dataset, because the three recipes would overlap in some feature space and couldn’t be separated linearly, therefore a linear decision boundary that did not do a good job of dividing the three types of recipes into three regions.</p>
+
+<p>After examining the characteristics of decision boundaries for Logistic Regression, K-NN, and RandomForst, and Exploring the distribution of the data, I finally chose to use the RandomForest Classification Model. This model can divided into different ‘rectangular-like’ modules, in my model, the decision boundaries are some cuboids as I have three features.</p>
+
+<p>I made a new pipeline, using RandomForest Classifier, and then using Cross-Validation to determine four hyperparameters by finding the highest macro F1-score: <code class="language-plaintext highlighter-rouge">max_depth</code>, <code class="language-plaintext highlighter-rouge">min_samples_split</code>, <code class="language-plaintext highlighter-rouge">criterion</code>, and <code class="language-plaintext highlighter-rouge">n_estimators</code>.</p>
+
+<p>The result of Cross-Validation is:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">max_depth</code>: 18</li>
+  <li><code class="language-plaintext highlighter-rouge">min_samples_split</code>: 10</li>
+  <li><code class="language-plaintext highlighter-rouge">criterion</code>: ‘entropy’</li>
+  <li><code class="language-plaintext highlighter-rouge">n_estimators</code>: 60</li>
+</ul>
+
+<p>The macro average of accuracy, precision, recall, and F1-score are:</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Accuracy</td>
+      <td>0.9168</td>
+    </tr>
+    <tr>
+      <td>Precision</td>
+      <td>0.92</td>
+    </tr>
+    <tr>
+      <td>Recall</td>
+      <td>0.92</td>
+    </tr>
+    <tr>
+      <td>F1-score</td>
+      <td>0.92</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The resulting confusion matrix for the multinomial logistic regression model is shown below.
+<br /></p>
+
+<iframe src="assets/final-cm.html" width="850" height="450" frameborder="0"></iframe>
+
+<p>Compared to my baseline model, the overall performance improved from 75% to over 90%, which is a huge improvement.</p>
+
+<p>RandomForest can divide the feature space into different ‘rectangular-like’ regions, so it is more flexible than Logistic Regression. I also used Cross-Validation to find the best hyperparameters of the RandomForest Classification Model, which also allowed my final model to perform better than the baseline model’s prediction.</p>
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/BirdyBai/Recipe-Classifier">Recipe-Classifier</a> is maintained by <a href="https://github.com/BirdyBai">BirdyBai</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

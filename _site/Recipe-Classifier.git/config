@@ -1,0 +1,9 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	ignorecase = true
+	precomposeunicode = true
+[remote "orgin"]
+	url = git@github.com:BirdyBai/Recipe-Classifier.git
+	fetch = +refs/heads/*:refs/remotes/orgin/*
